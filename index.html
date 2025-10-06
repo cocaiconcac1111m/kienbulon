@@ -2,106 +2,63 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video & Ảnh từ API ZeidTeam</title>
+  <title>Video & Ảnh Gái</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      background: #000;
+      background: #111;
       color: #fff;
-      margin: 0;
-      padding: 0;
+      text-align: center;
+      font-family: sans-serif;
+      padding: 10px;
     }
-    h2 {
-      margin-top: 15px;
-      color: #0ff;
-    }
-    video {
+    video, img {
       width: 90%;
-      max-width: 480px;
-      border-radius: 10px;
+      max-width: 400px;
+      border-radius: 15px;
       margin-top: 10px;
-      box-shadow: 0 0 20px #0af8;
-    }
-    img {
-      width: 90%;
-      max-width: 480px;
-      border-radius: 10px;
-      margin-top: 20px;
-      transition: opacity 0.5s ease;
-      box-shadow: 0 0 20px #f09a;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #0af;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #09f;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
   </style>
 </head>
 <body>
-  <h2>🎬 Video từ API ZeidTeam</h2>
-  <video id="video" controls autoplay loop></video><br>
-  <button id="btn">Tải video mới</button>
+  <h2>🌸 Video và Ảnh Gái Auto 🌸</h2>
 
-  <h2>📸 Ảnh tự động đổi mỗi 5 giây</h2>
-  <img id="image" src="" alt="Ảnh từ API">
+  <video id="video" controls autoplay muted loop></video>
+  <img id="image" alt="Ảnh sexy" />
 
   <script>
-    // ----------- VIDEO -----------
-    const videoApi = 'https://api.zeidteam.xyz/videos/gai';
-    const proxy = 'https://cors-anywhere.herokuapp.com/';
-    const videoEl = document.getElementById('video');
-    const btn = document.getElementById('btn');
+    const proxy = "https://crimson-forest-1f5f.hatient444.workers.dev";
+    const apiVideo = "https://api.zeidteam.xyz/videos/gai";
+    const apiImage = "https://api.zeidteam.xyz/images/gaisexy";
 
+    // === Lấy video ===
     async function loadVideo() {
       try {
-        const res = await fetch(proxy + videoApi);
+        const res = await fetch(`${proxy}/?url=${apiVideo}`);
         const data = await res.json();
-        console.log('Video API:', data);
-        if (data && data.status && data.data) {
-          videoEl.src = data.data;
-        } else {
-          alert('API video không hợp lệ!');
+        if (data?.data?.url) {
+          document.getElementById("video").src = data.data.url;
         }
-      } catch (err) {
-        alert('Lỗi tải video: ' + err.message);
+      } catch (e) {
+        console.error("Lỗi video:", e);
       }
     }
 
-    btn.onclick = loadVideo;
-    loadVideo(); // tải video đầu tiên khi vào web
-
-    // ----------- ẢNH TỰ ĐỔI -----------
-    const imgApi = 'https://api.zeidteam.xyz/images/gaisexy';
-    const imgEl = document.getElementById('image');
-
+    // === Lấy ảnh auto 5 giây ===
     async function loadImage() {
       try {
-        const res = await fetch(proxy + imgApi);
+        const res = await fetch(`${proxy}/?url=${apiImage}`);
         const data = await res.json();
-        console.log('Ảnh API:', data);
-        if (data && data.status && data.data) {
-          imgEl.style.opacity = 0;
-          setTimeout(() => {
-            imgEl.src = data.data;
-            imgEl.style.opacity = 1;
-          }, 400);
+        if (data?.data?.url) {
+          document.getElementById("image").src = data.data.url;
         }
-      } catch (err) {
-        console.error('Lỗi tải ảnh:', err);
+      } catch (e) {
+        console.error("Lỗi ảnh:", e);
       }
     }
 
-    loadImage(); // ảnh đầu tiên
+    loadVideo();
+    loadImage();
     setInterval(loadImage, 5000); // đổi ảnh mỗi 5 giây
   </script>
 </body>
