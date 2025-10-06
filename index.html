@@ -1,162 +1,78 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Gái TikTok - by Bảo Anh</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Video API Demo</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: url('monkey-selfie.jpg') no-repeat center center fixed;
-      background-size: cover;
-      text-align: center;
-      padding: 20px;
-      color: #000;
+    body { font-family: system-ui, sans-serif; padding: 20px; background: #f7f7f7; }
+    h1 { color: #333; }
+    .video-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    video {
-      width: 90%;
-      max-width: 500px;
-      height: auto;
-      margin-top: 20px;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-    }
-    .info {
-      text-align: left;
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .auto-toggle {
-      margin-top: 10px;
-    }
-    .admin {
-      font-size: 16px;
-      margin-top: -10px;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    .led-rgb {
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 30px;
-      animation: rainbow 2s infinite;
-    }
-    @keyframes rainbow {
-      0% { color: red; }
-      16% { color: orange; }
-      32% { color: yellow; }
-      48% { color: green; }
-      64% { color: blue; }
-      80% { color: indigo; }
-      100% { color: violet; }
-    }
-    .status {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #222;
-    }
-    .note {
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.8);
-      display: inline-block;
-      padding: 10px 15px;
-      border-radius: 10px;
-      font-size: 14px;
-      color: red;
-    }
+    video { width: 100%; border-radius: 8px; background: #000; }
   </style>
 </head>
 <body>
-
-  <h1>Gái TikTok - by Bảo Anh</h1>
-  <div class="admin"><strong>Admin:</strong> Bảo Anh</div>
-
-  <div class="note">
-    Nếu video không hiển thị, hãy vào <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank">link này</a> để bật quyền xem video.
-  </div>
-
-  <button onclick="getVideo()">Đổi Video</button>
-  <div class="auto-toggle">
-    <label>
-      <input type="checkbox" id="autoPlay" onchange="toggleAuto()"> Tự động đổi video mỗi 20s
-    </label>
-  </div>
-
-  <div id="status" class="status">Đang tải video...</div>
-  <div id="videoContainer"></div>
-  <div id="infoContainer"></div>
-
-  <div class="led-rgb">Cảm ơn bạn đã quan tâm!</div>
+  <h1>📺 Danh sách video từ API</h1>
+  <div id="list">Đang tải...</div>
 
   <script>
-    let autoInterval = null;
-
-    async function getVideo() {
-      const statusDiv = document.getElementById("status");
+    async function loadVideos() {
+      const listEl = document.getElementById('list');
+      listEl.innerText = 'Đang tải...';
       try {
-        statusDiv.textContent = "Đang tải video...";
-        const proxy = "https://cors-anywhere.herokuapp.com/";
-        const apiURL = "https://api.zeidteam.xyz/videos/gai";
-        const res = await fetch(proxy + apiURL);
-        const json = await res.json();
-        const data = json.data;
+        // Gọi API qua proxy để tránh bị chặn
+        const apiUrl = 'https://api.zeidteam.xyz/videos/gai';
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiUrl);
 
-        if (!data || !data.play) {
-          statusDiv.textContent = "Không có video hợp lệ!";
-          document.getElementById("videoContainer").innerHTML = "<p>Lỗi tải video.</p>";
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error('Lỗi mạng ' + res.status);
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          listEl.innerText = 'API không trả mảng hợp lệ.';
+          console.log(data);
           return;
         }
 
-        statusDiv.textContent = "Tải video thành công!";
-        const author = data.author || {};
+        listEl.innerHTML = '';
+        for (const item of data) {
+          const card = document.createElement('div');
+          card.className = 'video-card';
 
-        document.getElementById("videoContainer").innerHTML = `
-          <video controls autoplay loop>
-            <source src="${data.play}" type="video/mp4">
-            Trình duyệt của bạn không hỗ trợ video.
-          </video>
-        `;
+          const title = document.createElement('h3');
+          title.textContent = item.title || 'Không có tiêu đề';
+          card.appendChild(title);
 
-        document.getElementById("infoContainer").innerHTML = `
-          <div class="info">
-            <strong>Tiêu đề:</strong> ${data.title || "Không có"}<br>
-            <strong>Tác giả:</strong> ${author.nickname || "Ẩn danh"}<br>
-            <strong>UID:</strong> ${author.id || "N/A"}<br>
-            <strong>Username:</strong> @${author.unique_id || "N/A"}<br>
-            <strong>Quốc gia:</strong> ${data.region || "Không rõ"}<br>
-            <strong>Lượt thích:</strong> ${data.digg_count}<br>
-            <strong>Bình luận:</strong> ${data.comment_count}<br>
-            <strong>Thời lượng:</strong> ${data.duration}s<br>
-            <strong>Ảnh đại diện:</strong> <a href="${author.avatar}" target="_blank">Xem</a>
-          </div>
-        `;
+          if (item.url) {
+            const video = document.createElement('video');
+            video.src = item.url;
+            video.controls = true;
+            video.preload = 'metadata';
+            card.appendChild(video);
+          } else if (item.thumb) {
+            const img = document.createElement('img');
+            img.src = item.thumb;
+            img.style.width = '100%';
+            img.style.borderRadius = '8px';
+            card.appendChild(img);
+          }
+
+          listEl.appendChild(card);
+        }
+
       } catch (err) {
-        statusDiv.textContent = "Lỗi kết nối API!";
-        document.getElementById("videoContainer").innerHTML = "<p>Lỗi kết nối API.</p>";
+        listEl.innerText = 'Lỗi tải API: ' + err;
+        console.error(err);
       }
     }
 
-    function toggleAuto() {
-      const autoPlay = document.getElementById("autoPlay").checked;
-      if (autoPlay) {
-        getVideo();
-        autoInterval = setInterval(getVideo, 20000);
-      } else {
-        clearInterval(autoInterval);
-      }
-    }
-
-    getVideo();
+    loadVideos();
   </script>
-
 </body>
 </html>
