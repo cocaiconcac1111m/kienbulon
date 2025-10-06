@@ -3,45 +3,79 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Video API Demo</title>
+  <title>Video API (CORS Anywhere Proxy)</title>
   <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; background: #f7f7f7; }
-    h1 { color: #333; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f6f6f6;
+      color: #222;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
     .video-card {
       background: #fff;
       border-radius: 12px;
       padding: 12px;
-      margin: 10px 0;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin: 10px auto;
+      max-width: 900px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    video { width: 100%; border-radius: 8px; background: #000; }
+    video {
+      width: 100%;
+      border-radius: 8px;
+      background: #000;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #0078ff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover { background: #005ec2; }
   </style>
 </head>
 <body>
-  <h1>📺 Danh sách video từ API</h1>
+  <h1>📺 Video từ API ZeidTeam</h1>
+  <button onclick="loadVideos()">🔄 Tải lại video</button>
   <div id="list">Đang tải...</div>
 
   <script>
     async function loadVideos() {
       const listEl = document.getElementById('list');
       listEl.innerText = 'Đang tải...';
+
       try {
-        // Gọi API qua proxy để tránh bị chặn
+        // ⚠️ BƯỚC 1: Trước khi chạy web, mở link sau để kích hoạt proxy:
+        // https://cors-anywhere.herokuapp.com/corsdemo
+        // Bấm nút “Request temporary access to the demo server”
+        // Rồi quay lại reload trang này.
+
         const apiUrl = 'https://api.zeidteam.xyz/videos/gai';
-        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiUrl);
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/' + apiUrl;
 
-        const res = await fetch(proxyUrl);
+        const res = await fetch(proxyUrl, {
+          headers: { 'Origin': location.origin }
+        });
+
         if (!res.ok) throw new Error('Lỗi mạng ' + res.status);
-        const data = await res.json();
 
+        const data = await res.json();
         if (!Array.isArray(data)) {
-          listEl.innerText = 'API không trả mảng hợp lệ.';
+          listEl.innerText = 'API không trả về danh sách video hợp lệ.';
           console.log(data);
           return;
         }
 
         listEl.innerHTML = '';
-        for (const item of data) {
+        data.forEach(item => {
           const card = document.createElement('div');
           card.className = 'video-card';
 
@@ -50,11 +84,11 @@
           card.appendChild(title);
 
           if (item.url) {
-            const video = document.createElement('video');
-            video.src = item.url;
-            video.controls = true;
-            video.preload = 'metadata';
-            card.appendChild(video);
+            const v = document.createElement('video');
+            v.src = item.url;
+            v.controls = true;
+            v.preload = 'metadata';
+            card.appendChild(v);
           } else if (item.thumb) {
             const img = document.createElement('img');
             img.src = item.thumb;
@@ -64,10 +98,9 @@
           }
 
           listEl.appendChild(card);
-        }
-
+        });
       } catch (err) {
-        listEl.innerText = 'Lỗi tải API: ' + err;
+        listEl.innerText = '❌ Lỗi tải API: ' + err.message;
         console.error(err);
       }
     }
