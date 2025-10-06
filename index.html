@@ -1,111 +1,46 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Video API (CORS Anywhere Proxy)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xem video từ API ZeidTeam</title>
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f6f6f6;
-      color: #222;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    .video-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 12px;
-      margin: 10px auto;
-      max-width: 900px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    video {
-      width: 100%;
-      border-radius: 8px;
-      background: #000;
-    }
-    button {
-      display: block;
-      margin: 20px auto;
-      padding: 10px 16px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background: #0078ff;
-      color: #fff;
-      cursor: pointer;
-    }
-    button:hover { background: #005ec2; }
+    body { font-family: sans-serif; text-align: center; background: #111; color: white; }
+    video { width: 90%; max-width: 480px; border-radius: 10px; margin-top: 20px; }
+    button { margin-top: 15px; padding: 10px 20px; font-size: 16px; border: none; border-radius: 6px; background: #0af; color: white; cursor: pointer; }
+    button:hover { background: #09f; }
   </style>
 </head>
 <body>
-  <h1>📺 Video từ API ZeidTeam</h1>
-  <button onclick="loadVideos()">🔄 Tải lại video</button>
-  <div id="list">Đang tải...</div>
+  <h2>🎬 Video từ API ZeidTeam</h2>
+  <video id="video" controls autoplay loop></video><br>
+  <button id="btn">Tải video mới</button>
 
   <script>
-    async function loadVideos() {
-      const listEl = document.getElementById('list');
-      listEl.innerText = 'Đang tải...';
+    const apiUrl = 'https://api.zeidteam.xyz/videos/gai';
+    const proxyUrl = 'https://cors-anywhere.herokuapp.com/' + apiUrl;
+    const videoEl = document.getElementById('video');
+    const btn = document.getElementById('btn');
 
+    async function loadVideo() {
+      videoEl.src = '';
+      videoEl.poster = '';
       try {
-        // ⚠️ BƯỚC 1: Trước khi chạy web, mở link sau để kích hoạt proxy:
-        // https://cors-anywhere.herokuapp.com/corsdemo
-        // Bấm nút “Request temporary access to the demo server”
-        // Rồi quay lại reload trang này.
-
-        const apiUrl = 'https://api.zeidteam.xyz/videos/gai';
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/' + apiUrl;
-
-        const res = await fetch(proxyUrl, {
-          headers: { 'Origin': location.origin }
-        });
-
-        if (!res.ok) throw new Error('Lỗi mạng ' + res.status);
-
+        const res = await fetch(proxyUrl);
         const data = await res.json();
-        if (!Array.isArray(data)) {
-          listEl.innerText = 'API không trả về danh sách video hợp lệ.';
-          console.log(data);
-          return;
+        console.log('Dữ liệu API:', data);
+        if (data && data.status && data.data) {
+          videoEl.src = data.data;
+        } else {
+          alert('API trả dữ liệu không hợp lệ!');
         }
-
-        listEl.innerHTML = '';
-        data.forEach(item => {
-          const card = document.createElement('div');
-          card.className = 'video-card';
-
-          const title = document.createElement('h3');
-          title.textContent = item.title || 'Không có tiêu đề';
-          card.appendChild(title);
-
-          if (item.url) {
-            const v = document.createElement('video');
-            v.src = item.url;
-            v.controls = true;
-            v.preload = 'metadata';
-            card.appendChild(v);
-          } else if (item.thumb) {
-            const img = document.createElement('img');
-            img.src = item.thumb;
-            img.style.width = '100%';
-            img.style.borderRadius = '8px';
-            card.appendChild(img);
-          }
-
-          listEl.appendChild(card);
-        });
       } catch (err) {
-        listEl.innerText = '❌ Lỗi tải API: ' + err.message;
-        console.error(err);
+        alert('Lỗi tải video: ' + err.message);
       }
     }
 
-    loadVideos();
+    btn.onclick = loadVideo;
+    loadVideo(); // tự động tải khi mở trang
   </script>
 </body>
 </html>
