@@ -3,12 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xem video từ API ZeidTeam</title>
+  <title>Video & Ảnh từ API ZeidTeam</title>
   <style>
-    body { font-family: sans-serif; text-align: center; background: #111; color: white; }
-    video { width: 90%; max-width: 480px; border-radius: 10px; margin-top: 20px; }
-    button { margin-top: 15px; padding: 10px 20px; font-size: 16px; border: none; border-radius: 6px; background: #0af; color: white; cursor: pointer; }
-    button:hover { background: #09f; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    h2 {
+      margin-top: 15px;
+      color: #0ff;
+    }
+    video {
+      width: 90%;
+      max-width: 480px;
+      border-radius: 10px;
+      margin-top: 10px;
+      box-shadow: 0 0 20px #0af8;
+    }
+    img {
+      width: 90%;
+      max-width: 480px;
+      border-radius: 10px;
+      margin-top: 20px;
+      transition: opacity 0.5s ease;
+      box-shadow: 0 0 20px #f09a;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #0af;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #09f;
+    }
   </style>
 </head>
 <body>
@@ -16,23 +52,25 @@
   <video id="video" controls autoplay loop></video><br>
   <button id="btn">Tải video mới</button>
 
+  <h2>📸 Ảnh tự động đổi mỗi 5 giây</h2>
+  <img id="image" src="" alt="Ảnh từ API">
+
   <script>
-    const apiUrl = 'https://api.zeidteam.xyz/videos/gai';
-    const proxyUrl = 'https://cors-anywhere.herokuapp.com/' + apiUrl;
+    // ----------- VIDEO -----------
+    const videoApi = 'https://api.zeidteam.xyz/videos/gai';
+    const proxy = 'https://cors-anywhere.herokuapp.com/';
     const videoEl = document.getElementById('video');
     const btn = document.getElementById('btn');
 
     async function loadVideo() {
-      videoEl.src = '';
-      videoEl.poster = '';
       try {
-        const res = await fetch(proxyUrl);
+        const res = await fetch(proxy + videoApi);
         const data = await res.json();
-        console.log('Dữ liệu API:', data);
+        console.log('Video API:', data);
         if (data && data.status && data.data) {
           videoEl.src = data.data;
         } else {
-          alert('API trả dữ liệu không hợp lệ!');
+          alert('API video không hợp lệ!');
         }
       } catch (err) {
         alert('Lỗi tải video: ' + err.message);
@@ -40,7 +78,31 @@
     }
 
     btn.onclick = loadVideo;
-    loadVideo(); // tự động tải khi mở trang
+    loadVideo(); // tải video đầu tiên khi vào web
+
+    // ----------- ẢNH TỰ ĐỔI -----------
+    const imgApi = 'https://api.zeidteam.xyz/images/gaisexy';
+    const imgEl = document.getElementById('image');
+
+    async function loadImage() {
+      try {
+        const res = await fetch(proxy + imgApi);
+        const data = await res.json();
+        console.log('Ảnh API:', data);
+        if (data && data.status && data.data) {
+          imgEl.style.opacity = 0;
+          setTimeout(() => {
+            imgEl.src = data.data;
+            imgEl.style.opacity = 1;
+          }, 400);
+        }
+      } catch (err) {
+        console.error('Lỗi tải ảnh:', err);
+      }
+    }
+
+    loadImage(); // ảnh đầu tiên
+    setInterval(loadImage, 5000); // đổi ảnh mỗi 5 giây
   </script>
 </body>
 </html>
